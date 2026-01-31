@@ -10,31 +10,36 @@
 - name: Get the Jenkins apt repository key.
   ansible.builtin.get_url:
     url: "{{ jenkins_repo_key_url }}"
-    dest: /etc/apt/trusted.gpg.d/jenkins.asc
+    dest: /etc/apt/keyrings/jenkins-keyring.asc
     mode: '0644'
     force: true
 
-- name: Ensure /etc/apt/trusted.gpg.d/jenkins.asc is world-readable
+- name: Ensure /etc/apt/keyrings/jenkins-keyring.asc is world-readable
   ansible.builtin.file:
-    path: /etc/apt/trusted.gpg.d/jenkins.asc
+    path: /etc/apt/keyrings/jenkins-keyring.asc
     mode: '0644'
     owner: root
     group: root
   become: true
 
-- name: Add Jenkins repository using deb822_repository
-  ansible.builtin.deb822_repository:
-    name: jenkins
-    types: [deb]
-    uris: "{{ jenkins_repo_url }}"
-    suites: [trixie]
-    components: [stable]
-    architectures: [amd64]
-    signed_by: /etc/apt/trusted.gpg.d/jenkins.asc
-    enabled: true
-    state: present
-  when: jenkins_repo_url is defined and jenkins_repo_url != ""
+# - name: Add Jenkins repository using deb822_repository
+#   ansible.builtin.deb822_repository:
+#     name: jenkins
+#     types: [deb]
+#     uris: "{{ jenkins_repo_url }}"
+#     suites: [trixie]
+#     components: [stable]
+#     signed_by: /etc/apt/trusted.gpg.d/jenkins.asc
+#     state: present
+#   when: jenkins_repo_url is defined and jenkins_repo_url != ""
     
+- name: Add Jenkins APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] {{ jenkins_repo_url }}"
+    filename: jenkins
+    state: present
+  when: jenkins_repo_url is defined and jenkins_repo_url != ""    
+
 - name: Update apt package cache - before getting Jenkins packages
   ansible.builtin.apt:
     update_cache: true

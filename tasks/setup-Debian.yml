@@ -36,7 +36,7 @@
   when: jenkins_repo_url is defined and jenkins_repo_url != ""
     
 - name: Update apt package cache - before getting Jenkins packages
-  ansible.builtin.apt
+  ansible.builtin.apt:
     update_cache: true
   become: true
 
